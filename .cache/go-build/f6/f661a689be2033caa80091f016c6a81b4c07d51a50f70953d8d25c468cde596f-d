@@ -1,0 +1,4 @@
+./commons.go
+./diff.go
+./staticcheck_common.go
+./util.go

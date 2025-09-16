@@ -1,0 +1,5 @@
+./analysis.go
+./analysis_120.go
+./default.go
+./gofumpt_120.go
+./settings.go

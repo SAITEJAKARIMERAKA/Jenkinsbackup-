@@ -1,0 +1,8 @@
+./issue.go
+./linter.go
+./metalinter.go
+./runner.go
+./runner_action.go
+./runner_facts.go
+./runner_loadingpackage.go
+./runners.go

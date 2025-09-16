@@ -1,0 +1,5 @@
+./command.go
+./conversions.go
+./prettyprint.go
+./shorten_type.go
+./types.go

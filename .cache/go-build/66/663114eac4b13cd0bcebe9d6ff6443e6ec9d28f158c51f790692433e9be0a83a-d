@@ -1,0 +1,17 @@
+./cgroup.go
+./doc.go
+./iter.go
+./kprobe.go
+./kprobe_multi.go
+./link.go
+./netns.go
+./perf_event.go
+./program.go
+./query.go
+./raw_tracepoint.go
+./socket_filter.go
+./syscalls.go
+./tracepoint.go
+./tracing.go
+./uprobe.go
+./xdp.go

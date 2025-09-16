@@ -1,0 +1,12 @@
+./debug_release.go
+./dirent.go
+./doc.go
+./inoWithIno.go
+./modeType.go
+./modeTypeWithType.go
+./nameWithoutNamlen.go
+./readdir.go
+./scandir_unix.go
+./scanner.go
+./symdir.go
+./walk.go

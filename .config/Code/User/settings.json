@@ -1,0 +1,30 @@
+{
+  "dotnetAcquisitionExtension.existingDotnetPath": [
+    {
+      "extensionId": "msazurermtools.azurerm-vscode-tools",
+      "path": "/usr/bin/dotnet"
+    }
+  ],
+  "editor.minimap.enabled": false,
+  "editor.semanticHighlighting.enabled": false,
+  "extensions.autoCheckUpdates": false,
+  "extensions.autoUpdate": false,
+  "files.autoSave": "afterDelay",
+  "files.exclude": {
+    "**/.*": true
+  },
+  "gitlens.showWelcomeOnInstall": false,
+  "gitlens.showWhatsNewAfterUpgrades": false,
+  "go.toolsEnvVars": {
+    "GOBIN": "/root/.go/bin",
+    "GOPATH": "/root/go"
+  },
+  "go.toolsManagement.checkForUpdates": "local",
+  "redhat.telemetry.enabled": false,
+  "telemetry.telemetryLevel": "off",
+  "update.mode": "none",
+  "window.autoDetectColorScheme": false,
+  "workbench.colorCustomizations": {},
+  "workbench.colorTheme": "Default Dark+",
+  "workbench.startupEditor": "none"
+}

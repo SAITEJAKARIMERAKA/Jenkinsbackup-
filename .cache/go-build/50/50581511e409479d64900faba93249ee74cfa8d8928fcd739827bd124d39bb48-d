@@ -1,0 +1,5 @@
+./analyzer.go
+./embedded_walker.go
+./errcheck.go
+./excludes.go
+./tags.go
