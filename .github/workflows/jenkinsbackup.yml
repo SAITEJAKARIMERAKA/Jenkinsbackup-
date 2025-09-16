@@ -2,7 +2,7 @@ name: Jenkins Backup
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # runs every 5 minutes (adjust as needed)
+    - cron: '0 * * * *'  # runs every 5 minutes (adjust as needed)
   workflow_dispatch:       # allows manual trigger
 
 env:
