@@ -1,0 +1,30 @@
+name: Jenkins Backup
+
+on:
+  schedule:
+    - cron: 'H/5 * * * *'  # runs every 5 minutes (adjust as needed)
+  workflow_dispatch:       # allows manual trigger
+
+env:
+  BACKUP_DIR: ${{ github.workspace }}/jenkins_backup
+  JENKINS_HOME: ${{ secrets.JENKINS_HOME }}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create Backup Directory
+        run: mkdir -p $BACKUP_DIR
+
+      - name: Perform Jenkins Backup
+        run: |
+          DATE=$(date +'%Y%m%d_%H%M%S')
+          echo "Backing up Jenkins from $JENKINS_HOME..."
+          tar --warning=no-file-changed -czvf $BACKUP_DIR/jenkins_backup_${DATE}.tar.gz \
+            --exclude="$JENKINS_HOME/workspace/*" \
+            --exclude="$JENKINS_HOME/jobs/*/builds/*/log" \
+            --exclude="$BACKUP_DIR/*" \
+            -C $JENKINS_HOME .
+
+    # Post job success/failure messages are printed automatically by GitHub Actions
