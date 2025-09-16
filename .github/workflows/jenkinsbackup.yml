@@ -1,98 +1,37 @@
-name: Jenkins Backup
+name: Git Repository Backup
 
 on:
-  # Manual trigger
-  workflow_dispatch:
-    inputs:
-      keep_last:
-        description: 'Number of backups to keep'
-        required: false
-        default: '7'
-  # Scheduled: roughly once every hour (GitHub cron uses UTC)
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:        # manual trigger
   schedule:
-    - cron: '0 * * * *'   # every hour at minute 0 (UTC)
-    # - cron: '*/5 * * * *'  # uncomment to run every 5 minutes (use with caution)
-
-permissions:
-  contents: read
-  id-token: write
-
-env:
-  # Default values (can be overridden by repository secrets or workflow inputs)
-  JENKINS_HOME: /var/jenkins_home           # <-- set to actual path if different
-  BACKUP_DIR: ${{ github.workspace }}/jenkins_backups
-  KEEP_LAST: '7'
-  DATE: ${{ github.run_number }}_$(date +'%Y%m%d_%H%M%S')
+    - cron: '0 0 * * *'     # runs every day at 00:00 UTC
 
 jobs:
-  backup:
-    name: Create Jenkins backup
-    runs-on: [self-hosted, jenkins-host]   # recommended: self-hosted runner on Jenkins host
-    timeout-minutes: 60
+  backup-repo:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Print environment info
-        run: |
-          echo "Runner: ${{ runner.name }}"
-          echo "WORKSPACE: ${{ github.workspace }}"
-          echo "JENKINS_HOME: ${JENKINS_HOME}"
-          echo "BACKUP_DIR: ${BACKUP_DIR}"
-          echo "KEEP_LAST (default): ${KEEP_LAST}"
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Make backup directory
-        run: |
-          mkdir -p "${BACKUP_DIR}"
-          ls -ld "${BACKUP_DIR}"
+      - name: Create backup directory
+        run: mkdir -p ${{ github.workspace }}/repo_backup
 
-      - name: Create tar.gz backup of JENKINS_HOME
-        shell: bash
+      - name: Backup repository
         run: |
-          set -euo pipefail
-          DATE_STR=$(date +'%Y%m%d_%H%M%S')
-          OUT="${BACKUP_DIR}/jenkins_backup_${DATE_STR}.tar.gz"
-          echo "Creating backup: ${OUT}"
-          # Create tar; excludes are relative to JENKINS_HOME because we use -C
-          tar --warning=no-file-changed -czvf "${OUT}" \
-            --exclude="workspace/*" \
-            --exclude="jobs/*/builds/*/log" \
-            --exclude="${BACKUP_DIR}/*" \
-            -C "${JENKINS_HOME}" .
-          echo "Backup created: ${OUT}"
-          ls -lh "${OUT}"
+          TIMESTAMP=$(date +%F_%H-%M-%S)
+          tar -czvf ${{ github.workspace }}/repo_backup/repo_backup_$TIMESTAMP.tar.gz -C ${{ github.workspace }} .
 
-      - name: Cleanup old backups (keep last N)
-        shell: bash
-        run: |
-          set -euo pipefail
-          KEEP=${{ github.event.inputs.keep_last || env.KEEP_LAST }}
-          echo "Keeping last ${KEEP} backups in ${BACKUP_DIR}"
-          cd "${BACKUP_DIR}"
-          # List files sorted by time, delete older than last KEEP
-          ls -1tr jenkins_backup_*.tar.gz 2>/dev/null | head -n -${KEEP} | xargs -r rm -f --
-          echo "Remaining backups:"
-          ls -1tr jenkins_backup_*.tar.gz || true
+      - name: List backup files
+        run: ls -lh ${{ github.workspace }}/repo_backup
 
-      - name: Upload backup as GitHub artifact (fallback)
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Upload backup as artifact
+        uses: actions/upload-artifact@v4  # updated to latest version
         with:
-          name: jenkins-backups
-          path: ${{ env.BACKUP_DIR }}/jenkins_backup_*.tar.gz
-
-      # Optional: copy to S3 if AWS credentials are set in repository secrets
-      - name: Configure AWS credentials (optional - only runs if secrets present)
-        if: ${{ secrets.AWS_ACCESS_KEY_ID && secrets.AWS_SECRET_ACCESS_KEY && secrets.AWS_REGION && secrets.BUCKET_NAME }}
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Upload latest backup to S3 (optional)
-        if: ${{ secrets.AWS_ACCESS_KEY_ID && secrets.AWS_SECRET_ACCESS_KEY && secrets.AWS_REGION && secrets.BUCKET_NAME }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          LATEST=$(ls -1t ${BACKUP_DIR}/jenkins_backup_*.tar.gz | head -n1)
-          echo "Uploading ${LATEST} to s3://${{ secrets.BUCKET_NAME }}/jenkins_backups/"
-          aws s3 cp "${LATEST}" "s3://${{ secrets.BUCKET_NAME }}/jenkins_backups/"
+          name: repo-backup-${{ github.run_id }}
+          path: ${{ github.workspace }}/repo_backup/repo_backup_*.tar.gz
